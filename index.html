@@ -3,20 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Orbit-Messenger</title>
+  <title>Orbit Messenger</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="star star1"></div>
-  <div class="star star2"></div>
-  <div class="star star3"></div>
-  <div class="star star4"></div>
-  <div class="star star5"></div>
-  <div class="planet planet1"></div>
-  <div class="planet planet2"></div>
+  <div class="background-effects">
+    <div class="star star1"></div>
+    <div class="star star2"></div>
+    <div class="star star3"></div>
+    <div class="star star4"></div>
+    <div class="star star5"></div>
+    <div class="planet planet1"></div>
+    <div class="planet planet2"></div>
+  </div>
 
-  <div id="login">
+  <!-- Login Section -->
+  <div id="login" class="panel">
     <img src="orbit.jpeg" id="logo" alt="Orbit-Messenger Logo" />
     <h2>Welcome to <br> <span class="glow">Orbit-Messenger</span></h2>
     <input id="username" placeholder="Username" /><br>
@@ -29,20 +32,23 @@
     <button class="alt" onclick="continueAsGuest()">Continue as Guest</button>
   </div>
 
-  <div id="chat" style="display: none;">
+  <!-- Chat Panel -->
+  <div id="chat" class="panel" style="display: none;">
     <div class="chat-header">
       <h2>Welcome, <span id="userDisplay"></span></h2>
       <button id="logoutBtn" onclick="logout()">Logout</button>
     </div>
 
-    <label for="chatType">Chat Type:</label>
-    <select id="chatType" onchange="toggleChatTarget()">
-      <option value="private">Private</option>
-      <option value="group">Group</option>
-    </select>
+    <div class="chat-controls">
+      <label for="chatType">Chat Type:</label>
+      <select id="chatType" onchange="toggleChatTarget()">
+        <option value="private">Private</option>
+        <option value="group">Group</option>
+      </select>
 
-    <select id="recipientList" class="targetDropdown"></select>
-    <select id="groupList" class="targetDropdown" style="display: none;"></select>
+      <select id="recipientList" class="targetDropdown"></select>
+      <select id="groupList" class="targetDropdown" style="display: none;"></select>
+    </div>
 
     <div id="messages" class="message-box"></div>
 
@@ -53,7 +59,6 @@
   </div>
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  
   <script>
     document.getElementById("togglePassword").addEventListener("click", function () {
       const passwordInput = document.getElementById("password");
