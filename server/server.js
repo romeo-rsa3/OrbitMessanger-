@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 app.use("/auth", authRoutes);
 
 // ========== Connect to MongoDB ==========
-mongoose.connect("mongodb://localhost:27017/chat-app", {
+mongoose.connect("mongodb+srv://Admin:admin123@orbitmessengercluster.agkyjj5.mongodb.net/?retryWrites=true&w=majority&appName=OrbitMessengerCluster", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -104,7 +104,7 @@ io.on("connection", (socket) => {
 });
 
 // ========== START SERVER ==========
-const PORT = 5000;
+const PORT = process.env.PORT || 5000; // ✅ Render-compatible
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
