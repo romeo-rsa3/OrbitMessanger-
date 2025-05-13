@@ -1,0 +1,39 @@
+{
+  "name": "orbit-messenger",
+  "version": "1.0.0",
+  "description": "Orbit Messenger Desktop Chat App",
+  "main": "main.js",
+  "author": "Your Name",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.orbitmessenger.chat",
+    "productName": "Orbit Messenger",
+    "files": [
+      "**/*",
+      "!node_modules/*/{test,tests}/**",
+      "!**/*.md"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": "portable",
+      "icon": "icon.ico" 
+    }
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mongoose": "^7.0.3",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "electron": "^36.2.0",
+    "electron-builder": "^24.6.0"
+  }
+}
