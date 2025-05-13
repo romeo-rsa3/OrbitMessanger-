@@ -25,7 +25,7 @@ function login() {
 
   alert("Sending login request...");
 
-  fetch("http://127.0.0.1:5000/auth/login", {
+   fetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
@@ -56,7 +56,7 @@ function register() {
 
   alert("Sending register request...");
 
-  fetch("http://127.0.0.1:5000/auth/register", {  // ✅ fixed path
+  fetch(`${API_BASE}/auth/register`, {
     method: "POST",
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
@@ -108,7 +108,7 @@ function continueAsGuest() {
 // ========== LOAD USERS AND GROUPS ==========
 function loadUsersAndGroups() {
   return Promise.all([
-    fetch("http://127.0.0.1:5000/users")
+    fetch(`${API_BASE}/users`)
       .then(res => res.json())
       .then(users => {
         const recipientDropdown = document.getElementById("recipientList");
@@ -123,7 +123,7 @@ function loadUsersAndGroups() {
         });
       }),
 
-    fetch("http://127.0.0.1:5000/groups")
+    fetch(`${API_BASE}/groups`)
       .then(res => res.json())
       .then(groups => {
         const groupDropdown = document.getElementById("groupList");
@@ -180,13 +180,13 @@ function sendMessage() {
 
 // ========== HISTORY LOADING ==========
 async function loadPrivateHistory(user1, user2) {
-  const res = await fetch(`http://127.0.0.1:5000/history/private?user1=${user1}&user2=${user2}`);
+  const res = await fetch(`${API_BASE}/history/private?user1=${user1}&user2=${user2}`);
   const messages = await res.json();
   displayHistory(messages);
 }
 
 async function loadGroupHistory(group) {
-  const res = await fetch(`http://127.0.0.1:5000/history/group?group=${group}`);
+  const res = await fetch(`${API_BASE}/history/group?group=${group}`);
   const messages = await res.json();
   displayHistory(messages);
 }
