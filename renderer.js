@@ -1,7 +1,14 @@
 // Connect to Node.js backend (change to production domain/IP when needed)
 console.log("Renderer script loaded");
 
-const socket = io("http://127.0.0.1:5000");
+const API_BASE = "https://orbitmessanger-backend.onrender.com"; // your URL
+const socket = io(API_BASE);
+
+// Update all fetch() calls:
+fetch(`${API_BASE}/auth/login`)
+fetch(`${API_BASE}/users`)
+fetch(`${API_BASE}/groups`)
+
 
 let currentUser = "";
 let currentChatType = "private";
