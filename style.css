@@ -1,213 +1,237 @@
-// renderer.js
-console.log("Renderer script loaded");
-
-const API_BASE = "https://orbitmessanger-backend.onrender.com";
-const socket = io(API_BASE);
-
-let currentUser = "";
-let currentChatType = "private";
-let currentTarget = "";
-
-function login() {
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if (!username || !password) return alert("Username and password are required.");
-
-  fetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      startChatSession(username);
-    } else {
-      alert("Login failed: " + (data.message || "Unknown error"));
-    }
-  })
-  .catch(() => alert("Login failed: could not connect to server."));
+/* Orbit Messenger UI Styles */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(180deg, #0d0d1a, #121221);
+  color: #f1f1f1;
 }
 
-function register() {
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if (!username || !password) return alert("Username and password are required.");
-
-  fetch(`${API_BASE}/auth/register`, {
-    method: "POST",
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert("Registration successful. You can now log in.");
-    } else {
-      alert("Registration failed: " + data.message);
-    }
-  })
-  .catch(() => alert("Registration failed: could not connect to server."));
+.background-effects {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 0;
 }
 
-function startChatSession(username) {
-  currentUser = username;
-  document.getElementById("login").style.display = "none";
-  document.getElementById("chat").style.display = "block";
-  document.getElementById("userDisplay").innerText = username;
-  socket.emit("login", { username });
-
-loadUsersAndGroups().then(() => {
-  setTimeout(() => {
-    const defaultRecipient = document.getElementById("recipientList").value;
-    if (defaultRecipient) {
-      currentTarget = defaultRecipient;
-      loadPrivateHistory(currentUser, defaultRecipient);
-    }
-  }, 300); // Give time for dropdown to populate
-});
-
+/* Stars & Planets */
+.star, .planet {
+  position: absolute;
+  border-radius: 50%;
 }
 
-function continueAsGuest() {
-  currentUser = "Guest" + Math.floor(Math.random() * 1000);
-  document.getElementById("login").style.display = "none";
-  document.getElementById("chat").style.display = "block";
-  document.getElementById("userDisplay").innerText = currentUser;
-  loadUsersAndGroups();
+.star {
+  background: white;
+  opacity: 0.3;
+  animation: floatStars linear infinite;
 }
 
-function loadUsersAndGroups() {
-  return Promise.all([
-    fetch(`${API_BASE}/users`)
-      .then(res => res.json())
-      .then(users => {
-        const dropdown = document.getElementById("recipientList");
-        dropdown.innerHTML = "";
-        users.forEach(user => {
-          if (user !== currentUser) {
-            const option = document.createElement("option");
-            option.value = user;
-            option.textContent = user;
-            dropdown.appendChild(option);
-          }
-        });
-      }),
-
-    fetch(`${API_BASE}/groups`)
-      .then(res => res.json())
-      .then(groups => {
-        const dropdown = document.getElementById("groupList");
-        dropdown.innerHTML = "";
-        groups.forEach(group => {
-          const option = document.createElement("option");
-          option.value = group;
-          option.textContent = group;
-          dropdown.appendChild(option);
-        });
-      })
-  ]);
+@keyframes floatStars {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-100%); }
 }
 
-function toggleChatTarget() {
-  const type = document.getElementById("chatType").value;
-  currentChatType = type;
+.star1 { width: 2px; height: 2px; top: 90%; left: 20%; animation-duration: 25s; }
+.star2 { width: 3px; height: 3px; top: 80%; left: 45%; animation-duration: 30s; }
+.star3 { width: 2px; height: 2px; top: 85%; left: 70%; animation-duration: 28s; }
+.star4 { width: 1px; height: 1px; top: 95%; left: 10%; animation-duration: 32s; }
+.star5 { width: 1px; height: 1px; top: 92%; left: 85%; animation-duration: 35s; }
 
-  if (type === "private") {
-    document.getElementById("recipientList").style.display = "inline-block";
-    document.getElementById("groupList").style.display = "none";
-    const target = document.getElementById("recipientList").value;
-    currentTarget = target;
-    if (target) loadPrivateHistory(currentUser, target);
-  } else {
-    document.getElementById("recipientList").style.display = "none";
-    document.getElementById("groupList").style.display = "inline-block";
-    const target = document.getElementById("groupList").value;
-    currentTarget = target;
-    if (target) loadGroupHistory(target);
-  }
+.planet {
+  background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%);
 }
 
-function sendMessage() {
-  const message = document.getElementById("msgInput").value.trim();
-  if (!message) return;
+.planet1 { width: 60px; height: 60px; top: 20%; left: 10%; }
+.planet2 { width: 100px; height: 100px; top: 50%; left: 80%; animation-delay: 5s; }
 
-  if (currentChatType === "private") {
-    socket.emit("private_message", { from: currentUser, to: currentTarget, message });
-    loadPrivateHistory(currentUser, currentTarget);
-  } else {
-    socket.emit("group_message", { from: currentUser, group: currentTarget, message });
-    loadGroupHistory(currentTarget);
-  }
-
-  document.getElementById("msgInput").value = "";
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(0); }
+  100% { transform: rotate(360deg) translateX(20px); }
 }
 
-async function loadPrivateHistory(user1, user2) {
-  const res = await fetch(`${API_BASE}/history/private?user1=${user1}&user2=${user2}`);
-  const messages = await res.json();
-  displayHistory(messages);
+/* Panel Shared Styles */
+.panel {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 128, 255, 0.3);
+  padding: 30px;
+  max-width: 400px;
+  margin: 50px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-async function loadGroupHistory(group) {
-  const res = await fetch(`${API_BASE}/history/group?group=${group}`);
-  const messages = await res.json();
-  displayHistory(messages);
+/* Logo */
+#logo {
+  width: 160px;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 8px royalblue);
 }
 
-function displayHistory(messages) {
-  const container = document.getElementById("messages");
-  container.innerHTML = "";
-  messages.forEach(renderMessage);
-  container.scrollTop = container.scrollHeight;
+.glow {
+  color: #80bfff;
+  text-shadow: 0 0 10px #4b9fff;
 }
 
-function renderMessage(data) {
-  const container = document.getElementById("messages");
-  const msgWrapper = document.createElement("div");
-  msgWrapper.classList.add("message", data.from === currentUser ? "sent" : "received");
-
-  const avatar = document.createElement("div");
-  avatar.classList.add("avatar");
-  avatar.innerText = (data.from.split(" ").map(p => p[0]).join("").substring(0, 2) || "U").toUpperCase();
-
-  const text = document.createElement("div");
-  text.classList.add("text");
-  text.innerText = `${data.from}: ${data.message}`;
-
-  if (data.from === currentUser) {
-    msgWrapper.appendChild(text);
-    msgWrapper.appendChild(avatar);
-  } else {
-    msgWrapper.appendChild(avatar);
-    msgWrapper.appendChild(text);
-  }
-
-  container.appendChild(msgWrapper);
+/* Form Elements */
+input, select, button {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-function logout() {
-  if (confirm("Are you sure you want to log out?")) {
-    document.getElementById("chat").style.display = "none";
-    document.getElementById("login").style.display = "block";
-    document.getElementById("username").value = "";
-    document.getElementById("password").value = "";
-    document.getElementById("msgInput").value = "";
-    document.getElementById("messages").innerHTML = "";
-    location.reload();
-  }
+input, select {
+  background: #1e1e2e;
+  color: #f1f1f1;
+  border: 1px solid #333;
 }
 
-socket.on("receive_message", renderMessage);
-socket.on("user_status", updateUserStatus);
+button {
+  background: linear-gradient(145deg, #4b4b88, #1c1c40);
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
 
-function updateUserStatus(data) {
-  const options = document.querySelectorAll("#recipientList option");
-  options.forEach(opt => {
-    if (opt.value === data.user) {
-      opt.textContent = `${data.user} ${data.status === "online" ? "🟢" : "🔘"}`;
-    }
-  });
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px royalblue;
+}
+
+button.alt {
+  background: #444;
+}
+
+/* Chat Header */
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+#userDisplay {
+  font-size: 18px;
+  font-weight: bold;
+  color: #6ab1ff;
+}
+
+#logoutBtn {
+  background: #222;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 5px 10px;
+  color: #fff;
+  cursor: pointer;
+}
+
+#logoutBtn:hover {
+  background: #f44336;
+}
+
+.chat-controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 15px 0;
+}
+
+.targetDropdown {
+  margin-top: 10px;
+}
+
+/* Message Area */
+#messages {
+  background: #1c1c2b;
+  padding: 15px;
+  border-radius: 12px;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.message {
+  display: flex;
+  align-items: flex-end;
+}
+
+.sent {
+  justify-content: flex-end;
+}
+
+.received {
+  justify-content: flex-start;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #3c3c55;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+.sent .avatar { background: #3355cc; }
+
+.text {
+  background: #2a2a3b;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  max-width: 70%;
+}
+
+.sent .text {
+  background: #334477;
+  text-align: right;
+}
+
+.received .text {
+  background: #222233;
+  text-align: left;
+}
+
+.message-input {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+}
+
+.message-input input {
+  flex: 1;
+}
+
+.password-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.toggle-eye {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
 }
