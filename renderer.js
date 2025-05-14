@@ -1,4 +1,5 @@
-// renderer.js
+// renderer.js (Improved with avatar initials, timestamps, and live chat display)
+
 console.log("Renderer script loaded");
 
 const API_BASE = "https://orbitmessanger-backend.onrender.com";
@@ -62,13 +63,11 @@ function startChatSession(username) {
   socket.emit("login", { username });
 
   loadUsersAndGroups().then(() => {
-    setTimeout(() => {
-      const defaultRecipient = document.getElementById("recipientList").value;
-      if (defaultRecipient) {
-        currentTarget = defaultRecipient;
-        loadPrivateHistory(currentUser, defaultRecipient);
-      }
-    }, 300);
+    const defaultRecipient = document.getElementById("recipientList").value;
+    if (defaultRecipient) {
+      currentTarget = defaultRecipient;
+      loadPrivateHistory(currentUser, currentTarget);
+    }
   });
 }
 
@@ -112,6 +111,28 @@ function loadUsersAndGroups() {
   ]);
 }
 
+function clearMessages() {
+  document.getElementById("messages").innerHTML = "";
+}
+
+function loadPrivateHistory(user1, user2) {
+  clearMessages();
+  fetch(`${API_BASE}/history/private?user1=${user1}&user2=${user2}`)
+    .then((res) => res.json())
+    .then((messages) => {
+      messages.forEach((msg) => renderMessage(msg));
+    });
+}
+
+function loadGroupHistory(group) {
+  clearMessages();
+  fetch(`${API_BASE}/history/group?group=${group}`)
+    .then((res) => res.json())
+    .then((messages) => {
+      messages.forEach((msg) => renderMessage(msg));
+    });
+}
+
 function toggleChatTarget() {
   const type = document.getElementById("chatType").value;
   currentChatType = type;
@@ -119,15 +140,13 @@ function toggleChatTarget() {
   if (type === "private") {
     document.getElementById("recipientList").style.display = "inline-block";
     document.getElementById("groupList").style.display = "none";
-    const target = document.getElementById("recipientList").value;
-    currentTarget = target;
-    if (target) loadPrivateHistory(currentUser, target);
+    currentTarget = document.getElementById("recipientList").value;
+    if (currentTarget) loadPrivateHistory(currentUser, currentTarget);
   } else {
     document.getElementById("recipientList").style.display = "none";
     document.getElementById("groupList").style.display = "inline-block";
-    const target = document.getElementById("groupList").value;
-    currentTarget = target;
-    if (target) loadGroupHistory(target);
+    currentTarget = document.getElementById("groupList").value;
+    if (currentTarget) loadGroupHistory(currentTarget);
   }
 }
 
@@ -149,121 +168,69 @@ function sendMessage() {
     socket.emit("group_message", messageData);
   }
 
-  renderMessage(messageData);
-  showTempStatus("Message sent");
-
+  renderMessage(messageData); // Show sent message instantly
   document.getElementById("msgInput").value = "";
 }
 
-async function loadPrivateHistory(user1, user2) {
-  const res = await fetch(
-    `${API_BASE}/history/private?user1=${user1}&user2=${user2}`
-  );
-  const messages = await res.json();
-  displayHistory(messages);
+function getInitials(name) {
+  return name.slice(0, 2).toUpperCase();
 }
 
-async function loadGroupHistory(group) {
-  const res = await fetch(`${API_BASE}/history/group?group=${group}`);
-  const messages = await res.json();
-  displayHistory(messages);
-}
-
-function displayHistory(messages) {
+function renderMessage({ from, message, timestamp }) {
   const container = document.getElementById("messages");
-  container.innerHTML = "";
-  messages.forEach(renderMessage);
+  const time = new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+  const div = document.createElement("div");
+  div.className =
+    from === currentUser ? "message-entry sent" : "message-entry received";
+
+  div.innerHTML = `
+    <div class="avatar">${getInitials(from)}</div>
+    <div class="message-bubble">
+      <div class="sender">${from}</div>
+      <div class="text">${message}</div>
+      <div class="timestamp">${time}</div>
+    </div>
+  `;
+
+  container.appendChild(div);
   container.scrollTop = container.scrollHeight;
 }
 
-function renderMessage(data) {
-  const container = document.getElementById("messages");
-  const msgWrapper = document.createElement("div");
-  msgWrapper.classList.add(
-    "message",
-    data.from === currentUser ? "sent" : "received"
-  );
+socket.on("receive_message", (msg) => {
+  const isRelevant =
+    (msg.type === "private" &&
+      ((msg.from === currentUser && msg.to === currentTarget) ||
+        (msg.from === currentTarget && msg.to === currentUser))) ||
+    (msg.type === "group" && msg.group === currentTarget);
 
-  const avatar = document.createElement("div");
-  avatar.classList.add("avatar");
-  avatar.innerText = (
-    data.from
-      ?.split(" ")
-      .map((p) => p[0])
-      .join("")
-      .substring(0, 2) || "U"
-  ).toUpperCase();
-
-  const text = document.createElement("div");
-  text.classList.add("text");
- const time = new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-text.innerText = `${data.from} (${time}): ${data.message}`;
-
-
-  if (data.from === currentUser) {
-    msgWrapper.appendChild(text);
-    msgWrapper.appendChild(avatar);
-  } else {
-    msgWrapper.appendChild(avatar);
-    msgWrapper.appendChild(text);
-  }
-
-  container.appendChild(msgWrapper);
-  container.scrollTop = container.scrollHeight;
-}
-
-function logout() {
-  if (confirm("Are you sure you want to log out?")) {
-    document.getElementById("chat").style.display = "none";
-    document.getElementById("login").style.display = "block";
-    document.getElementById("username").value = "";
-    document.getElementById("password").value = "";
-    document.getElementById("msgInput").value = "";
-    document.getElementById("messages").innerHTML = "";
-    location.reload();
-  }
-}
-
-socket.on("receive_message", (data) => {
-  const isPrivate = data.type === "private";
-  const isCurrent =
-    (isPrivate &&
-      (data.from === currentTarget || data.to === currentTarget)) ||
-    (!isPrivate && data.group === currentTarget);
-
-  if (isCurrent) {
-    renderMessage(data);
-  } else {
-    // Prompt user to switch
-    const switchTarget = isPrivate ? data.from : data.group;
-    if (confirm(`New message from ${switchTarget}. Switch chat?`)) {
-      document.getElementById("chatType").value = isPrivate ? "private" : "group";
-      toggleChatTarget();
-
-      if (isPrivate) {
-        document.getElementById("recipientList").value = switchTarget;
-        currentTarget = switchTarget;
-        loadPrivateHistory(currentUser, switchTarget);
-      } else {
-        document.getElementById("groupList").value = switchTarget;
-        currentTarget = switchTarget;
-        loadGroupHistory(switchTarget);
-      }
-    }
+  if (isRelevant) {
+    renderMessage(msg);
   }
 });
 
-
-
-socket.on("user_status", updateUserStatus);
-
-function updateUserStatus(data) {
-  const options = document.querySelectorAll("#recipientList option");
-  options.forEach((opt) => {
-    if (opt.value === data.user) {
-      opt.textContent = `${data.user} ${
-        data.status === "online" ? "🟢" : "🔘"
-      }`;
-    }
-  });
+document
+  .getElementById("chatType")
+  .addEventListener("change", toggleChatTarget);
+document.getElementById("recipientList").addEventListener("change", () => {
+  currentTarget = document.getElementById("recipientList").value;
+  loadPrivateHistory(currentUser, currentTarget);
+});
+document.getElementById("groupList").addEventListener("change", () => {
+  currentTarget = document.getElementById("groupList").value;
+  loadGroupHistory(currentTarget);
+});
+// Logout functionality
+function logout() {
+  currentUser = "";
+  currentTarget = "";
+  document.getElementById("msgInput").value = "";
+  clearMessages();
+  document.getElementById("chat").style.display = "none";
+  document.getElementById("login").style.display = "block";
 }
+
+// Attach the logout function to the button
+document.getElementById("logoutBtn").addEventListener("click", logout);
