@@ -12,44 +12,46 @@ function login() {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  if (!username || !password) return alert("Username and password are required.");
+  if (!username || !password)
+    return alert("Username and password are required.");
 
   fetch(`${API_BASE}/auth/login`, {
     method: "POST",
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password })
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      startChatSession(username);
-    } else {
-      alert("Login failed: " + (data.message || "Unknown error"));
-    }
-  })
-  .catch(() => alert("Login failed: could not connect to server."));
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        startChatSession(username);
+      } else {
+        alert("Login failed: " + (data.message || "Unknown error"));
+      }
+    })
+    .catch(() => alert("Login failed: could not connect to server."));
 }
 
 function register() {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  if (!username || !password) return alert("Username and password are required.");
+  if (!username || !password)
+    return alert("Username and password are required.");
 
   fetch(`${API_BASE}/auth/register`, {
     method: "POST",
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password })
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert("Registration successful. You can now log in.");
-    } else {
-      alert("Registration failed: " + data.message);
-    }
-  })
-  .catch(() => alert("Registration failed: could not connect to server."));
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.success) {
+        alert("Registration successful. You can now log in.");
+      } else {
+        alert("Registration failed: " + data.message);
+      }
+    })
+    .catch(() => alert("Registration failed: could not connect to server."));
 }
 
 function startChatSession(username) {
@@ -59,16 +61,15 @@ function startChatSession(username) {
   document.getElementById("userDisplay").innerText = username;
   socket.emit("login", { username });
 
-loadUsersAndGroups().then(() => {
-  setTimeout(() => {
-    const defaultRecipient = document.getElementById("recipientList").value;
-    if (defaultRecipient) {
-      currentTarget = defaultRecipient;
-      loadPrivateHistory(currentUser, defaultRecipient);
-    }
-  }, 300); // Give time for dropdown to populate
-});
-
+  loadUsersAndGroups().then(() => {
+    setTimeout(() => {
+      const defaultRecipient = document.getElementById("recipientList").value;
+      if (defaultRecipient) {
+        currentTarget = defaultRecipient;
+        loadPrivateHistory(currentUser, defaultRecipient);
+      }
+    }, 300);
+  });
 }
 
 function continueAsGuest() {
@@ -82,11 +83,11 @@ function continueAsGuest() {
 function loadUsersAndGroups() {
   return Promise.all([
     fetch(`${API_BASE}/users`)
-      .then(res => res.json())
-      .then(users => {
+      .then((res) => res.json())
+      .then((users) => {
         const dropdown = document.getElementById("recipientList");
         dropdown.innerHTML = "";
-        users.forEach(user => {
+        users.forEach((user) => {
           if (user !== currentUser) {
             const option = document.createElement("option");
             option.value = user;
@@ -97,11 +98,11 @@ function loadUsersAndGroups() {
       }),
 
     fetch(`${API_BASE}/groups`)
-      .then(res => res.json())
-      .then(groups => {
+      .then((res) => res.json())
+      .then((groups) => {
         const dropdown = document.getElementById("groupList");
         dropdown.innerHTML = "";
-        groups.forEach(group => {
+        groups.forEach((group) => {
           const option = document.createElement("option");
           option.value = group;
           option.textContent = group;
@@ -134,19 +135,30 @@ function sendMessage() {
   const message = document.getElementById("msgInput").value.trim();
   if (!message) return;
 
+  const messageData = {
+    from: currentUser,
+    message,
+    timestamp: new Date().toISOString()
+  };
+
   if (currentChatType === "private") {
-    socket.emit("private_message", { from: currentUser, to: currentTarget, message });
-    loadPrivateHistory(currentUser, currentTarget);
+    messageData.to = currentTarget;
+    socket.emit("private_message", messageData);
   } else {
-    socket.emit("group_message", { from: currentUser, group: currentTarget, message });
-    loadGroupHistory(currentTarget);
+    messageData.group = currentTarget;
+    socket.emit("group_message", messageData);
   }
+
+  renderMessage(messageData);
+  showTempStatus("Message sent");
 
   document.getElementById("msgInput").value = "";
 }
 
 async function loadPrivateHistory(user1, user2) {
-  const res = await fetch(`${API_BASE}/history/private?user1=${user1}&user2=${user2}`);
+  const res = await fetch(
+    `${API_BASE}/history/private?user1=${user1}&user2=${user2}`
+  );
   const messages = await res.json();
   displayHistory(messages);
 }
@@ -167,15 +179,26 @@ function displayHistory(messages) {
 function renderMessage(data) {
   const container = document.getElementById("messages");
   const msgWrapper = document.createElement("div");
-  msgWrapper.classList.add("message", data.from === currentUser ? "sent" : "received");
+  msgWrapper.classList.add(
+    "message",
+    data.from === currentUser ? "sent" : "received"
+  );
 
   const avatar = document.createElement("div");
   avatar.classList.add("avatar");
-  avatar.innerText = (data.from.split(" ").map(p => p[0]).join("").substring(0, 2) || "U").toUpperCase();
+  avatar.innerText = (
+    data.from
+      ?.split(" ")
+      .map((p) => p[0])
+      .join("")
+      .substring(0, 2) || "U"
+  ).toUpperCase();
 
   const text = document.createElement("div");
   text.classList.add("text");
-  text.innerText = `${data.from}: ${data.message}`;
+ const time = new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+text.innerText = `${data.from} (${time}): ${data.message}`;
+
 
   if (data.from === currentUser) {
     msgWrapper.appendChild(text);
@@ -186,6 +209,7 @@ function renderMessage(data) {
   }
 
   container.appendChild(msgWrapper);
+  container.scrollTop = container.scrollHeight;
 }
 
 function logout() {
@@ -200,14 +224,46 @@ function logout() {
   }
 }
 
-socket.on("receive_message", renderMessage);
+socket.on("receive_message", (data) => {
+  const isPrivate = data.type === "private";
+  const isCurrent =
+    (isPrivate &&
+      (data.from === currentTarget || data.to === currentTarget)) ||
+    (!isPrivate && data.group === currentTarget);
+
+  if (isCurrent) {
+    renderMessage(data);
+  } else {
+    // Prompt user to switch
+    const switchTarget = isPrivate ? data.from : data.group;
+    if (confirm(`New message from ${switchTarget}. Switch chat?`)) {
+      document.getElementById("chatType").value = isPrivate ? "private" : "group";
+      toggleChatTarget();
+
+      if (isPrivate) {
+        document.getElementById("recipientList").value = switchTarget;
+        currentTarget = switchTarget;
+        loadPrivateHistory(currentUser, switchTarget);
+      } else {
+        document.getElementById("groupList").value = switchTarget;
+        currentTarget = switchTarget;
+        loadGroupHistory(switchTarget);
+      }
+    }
+  }
+});
+
+
+
 socket.on("user_status", updateUserStatus);
 
 function updateUserStatus(data) {
   const options = document.querySelectorAll("#recipientList option");
-  options.forEach(opt => {
+  options.forEach((opt) => {
     if (opt.value === data.user) {
-      opt.textContent = `${data.user} ${data.status === "online" ? "🟢" : "🔘"}`;
+      opt.textContent = `${data.user} ${
+        data.status === "online" ? "🟢" : "🔘"
+      }`;
     }
   });
 }
