@@ -4,10 +4,8 @@ const http = require("http");
 const mongoose = require("mongoose");
 const socketIO = require("socket.io");
 
-
 const User = require("./models/User");
 const authRoutes = require("./routes/auth");
-
 
 const app = express();
 const server = http.createServer(app);
@@ -45,6 +43,14 @@ app.get("/groups", (req, res) => {
   res.json(["Space Crew", "Astro Coders", "Lunar Lounge"]);
 });
 
+function showTempStatus(text) {
+  const status = document.createElement("div");
+  status.innerText = text;
+  status.className = "status-toast";
+  document.body.appendChild(status);
+  setTimeout(() => status.remove(), 2000);
+}
+
 // Get private chat history
 app.get("/history/private", async (req, res) => {
   const { user1, user2 } = req.query;
@@ -73,7 +79,7 @@ app.get("/history/group", async (req, res) => {
 // ========== SOCKET.IO ==========
 
 io.on("connection", (socket) => {
-  console.log("🟢 New client connected:", socket.id);
+  console.log("New client connected:", socket.id);
 
   // Notify when a user logs in
   socket.on("login", ({ username }) => {
@@ -99,11 +105,12 @@ io.on("connection", (socket) => {
     if (socket.username) {
       io.emit("user_status", { user: socket.username, status: "offline" });
     }
-    console.log("🔴 Client disconnected:", socket.id);
+    console.log("Client disconnected:", socket.id);
   });
 });
 
 // ========== START SERVER ==========
+
 const PORT = process.env.PORT || 5000; // ✅ Render-compatible
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
