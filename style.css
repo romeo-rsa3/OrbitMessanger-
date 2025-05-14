@@ -1,20 +1,25 @@
 /* Orbit Messenger UI Styles */
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
   background: linear-gradient(180deg, #0d0d1a, #121221);
   color: #f1f1f1;
 }
 
 .background-effects {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 0;
 }
 
 /* Stars & Planets */
-.star, .planet {
+.star,
+.planet {
   position: absolute;
   border-radius: 50%;
 }
@@ -37,9 +42,8 @@ html, body {
 .star5 { width: 1px; height: 1px; top: 92%; left: 85%; animation-duration: 35s; }
 
 .planet {
-  background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent 70%);
 }
-
 .planet1 { width: 60px; height: 60px; top: 20%; left: 10%; }
 .planet2 { width: 100px; height: 100px; top: 50%; left: 80%; animation-delay: 5s; }
 
@@ -77,7 +81,9 @@ html, body {
 }
 
 /* Form Elements */
-input, select, button {
+input,
+select,
+button {
   padding: 10px;
   margin: 10px 0;
   border-radius: 8px;
@@ -85,13 +91,12 @@ input, select, button {
   width: 100%;
   box-sizing: border-box;
 }
-
-input, select {
+input,
+select {
   background: #1e1e2e;
   color: #f1f1f1;
   border: 1px solid #333;
 }
-
 button {
   background: linear-gradient(145deg, #4b4b88, #1c1c40);
   color: white;
@@ -100,12 +105,10 @@ button {
   cursor: pointer;
   transition: 0.3s;
 }
-
 button:hover {
   transform: scale(1.05);
   box-shadow: 0 0 10px royalblue;
 }
-
 button.alt {
   background: #444;
 }
@@ -116,6 +119,21 @@ button.alt {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+}
+.status-indicator {
+  font-size: 10px;
+  color: #bbb;
+  display: block;
+  margin-top: 5px;
+  text-align: right;
+}
+
+#chat.panel {
+  height: 90vh;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 #userDisplay {
@@ -132,7 +150,6 @@ button.alt {
   color: #fff;
   cursor: pointer;
 }
-
 #logoutBtn:hover {
   background: #f44336;
 }
@@ -143,7 +160,6 @@ button.alt {
   flex-direction: column;
   margin: 15px 0;
 }
-
 .targetDropdown {
   margin-top: 10px;
 }
@@ -162,64 +178,99 @@ button.alt {
   margin-bottom: 15px;
 }
 
-.message {
+/* Updated Message Styling */
+.message-entry {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
 }
-
-.sent {
-  justify-content: flex-end;
+.message-entry.sent {
+  flex-direction: row-reverse;
 }
-
-.received {
-  justify-content: flex-start;
-}
-
-.avatar {
+.message-entry .avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   background: #3c3c55;
   color: white;
+  font-weight: bold;
   display: flex;
   justify-content: center;
   align-items: center;
   margin: 0 10px;
-  font-weight: bold;
 }
-
-.sent .avatar { background: #3355cc; }
-
-.text {
+.message-entry.sent .avatar {
+  background: #3355cc;
+}
+.message-bubble {
   background: #2a2a3b;
   padding: 10px 14px;
-  border-radius: 18px;
+  border-radius: 12px;
+  max-width: 70%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.message-entry.sent .message-bubble {
+  background: #334477;
+}
+.sender {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #80bfff;
+}
+.text {
   font-size: 14px;
   line-height: 1.4;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  max-width: 70%;
+  margin-bottom: 4px;
 }
-
-.sent .text {
-  background: #334477;
+.timestamp {
+  font-size: 0.75em;
+  color: #ccc;
   text-align: right;
 }
 
-.received .text {
-  background: #222233;
-  text-align: left;
-}
-
+/* Message Input Area */
 .message-input {
   display: flex;
-  width: 100%;
+  align-items: center;
   gap: 10px;
+  width: 100%;
+  background: #1e1e2e;
+  padding: 10px;
+  border-radius: 20px;
 }
-
-.message-input input {
+.message-input textarea {
   flex: 1;
+  border-radius: 20px;
+  border: none;
+  resize: none;
+  font-size: 15px;
+  padding: 10px 15px;
+  background: #2c2c3c;
+  color: #f1f1f1;
+  max-height: 120px;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+.message-input button {
+  background: #4b8bff;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.message-input button:hover {
+  background: #377dff;
 }
 
+/* Password visibility toggle */
 .password-wrapper {
   display: flex;
   align-items: center;
@@ -227,11 +278,32 @@ button.alt {
   width: 100%;
   position: relative;
 }
-
 .toggle-eye {
   position: absolute;
   right: 20px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
+}
+
+/* Toast */
+.status-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4b8bff;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeinout 2s ease;
+}
+@keyframes fadeinout {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
 }
