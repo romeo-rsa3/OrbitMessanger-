@@ -19,13 +19,23 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
+  console.log(`Attempting login for: ${username}`);
+
   const user = await User.findOne({ username });
-  if (!user) return res.status(400).json({ success: false, message: "Invalid credentials" });
+  if (!user) {
+    console.log('User not found');
+    return res.status(400).json({ success: false, message: "Invalid credentials" });
+  }
 
   const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.status(400).json({ success: false, message: "Invalid credentials" });
+  if (!match) {
+    console.log('Password mismatch');
+    return res.status(400).json({ success: false, message: "Invalid credentials" });
+  }
 
+  console.log('Login successful');
   res.json({ success: true });
 });
+
 
 module.exports = router;
