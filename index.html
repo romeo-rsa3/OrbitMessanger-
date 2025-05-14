@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Orbit Messenger</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
 </head>
+
 <body>
   <div class="background-effects">
     <div class="star star1"></div>
@@ -52,15 +58,19 @@
 
     <div id="messages" class="message-box"></div>
 
+    <!-- Updated Message Input Area -->
     <div class="message-input">
-      <input id="msgInput" placeholder="Type a message..." />
-      <button onclick="sendMessage()">Send</button>
+      <textarea id="msgInput" rows="1" placeholder="Type a message..."></textarea>
+      <button onclick="sendMessage()">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+
     </div>
   </div>
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    document.getElementById("togglePassword").addEventListener("click", function () {
+    document.getElementById("togglePassword").addEventListener("click", function() {
       const passwordInput = document.getElementById("password");
       const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
       passwordInput.setAttribute("type", type);
@@ -69,4 +79,5 @@
   </script>
   <script src="renderer.js"></script>
 </body>
+
 </html>
